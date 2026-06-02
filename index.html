@@ -1490,10 +1490,10 @@ async function loginNext(){
   try {
     var client = getLoginSb();
     var hash = await sha256(pwd + LOGIN_USER);
-    var {data, error} = await client.from('app_config').select('value').eq('key','pwd_hash').single();
+    var {data, error} = await client.from('app_config').select('value').eq('key','pwd_hash').limit(1).maybeSingle();
 
     if(error || !data){
-      errEl.textContent = 'Erro: ' + (error ? error.message : 'sem dados') + ' | URL: ' + (client ? 'ok' : 'null');
+      errEl.textContent = 'Erro ao conectar ao banco. Tente novamente.';
       errEl.classList.add('show');
       document.getElementById('login-btn').disabled = false;
       document.getElementById('login-btn').textContent = 'Entrar';
