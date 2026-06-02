@@ -1466,7 +1466,7 @@ async function sha256(str){
 
 function getLoginSb(){
   if(_sbLogin) return _sbLogin;
-  try{ _sbLogin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }catch(e){}
+  try{ _sbLogin = supabase.createClient('https://hfqykekexhkxceuhzlnz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmcXlrZWtleGhreGNldWh6bG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNTU1MTAsImV4cCI6MjA5NTkzMTUxMH0.IASId14eDJttvf6fcOAIf7qfyeUZvNvYSzqmXgQXQI4'); }catch(e){}
   return _sbLogin;
 }
 
@@ -1493,7 +1493,7 @@ async function loginNext(){
     var {data, error} = await client.from('app_config').select('value').eq('key','pwd_hash').single();
 
     if(error || !data){
-      errEl.textContent = 'Erro ao conectar ao banco. Tente novamente.';
+      errEl.textContent = 'Erro: ' + (error ? error.message : 'sem dados') + ' | URL: ' + (client ? 'ok' : 'null');
       errEl.classList.add('show');
       document.getElementById('login-btn').disabled = false;
       document.getElementById('login-btn').textContent = 'Entrar';
