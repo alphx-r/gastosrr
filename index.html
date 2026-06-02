@@ -423,7 +423,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
     <div class="form-group"><label>Nome da conta</label><input type="text" id="fi-name" placeholder="Ex: Aluguel, Internet..." maxlength="50"></div>
     <div class="form-group"><label>Valor (R$)</label><input type="number" id="fi-value" placeholder="0,00" min="0.01" step="0.01"></div>
     <div class="form-group">
-      <label>Forma de pagamento</label>
+      <label for="fi-pay">Forma de pagamento</label>
       <select id="fi-pay">
         <option value="Dinheiro">💵 Dinheiro</option><option value="PIX">⚡ PIX</option><option value="Debito">💳 Debito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option><option value="Boleto">📄 Boleto</option><option value="Outro">📦 Outro</option>
       </select>
@@ -442,13 +442,13 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
     <div class="form-group"><label>Descricao</label><input type="text" id="inp-desc" placeholder="Ex: Mercado, Farmacia..." maxlength="60"></div>
     <div class="form-group"><label>Valor (R$)</label><input type="number" id="inp-value" placeholder="0,00" min="0.01" step="0.01"></div>
     <div class="form-group">
-      <label>Categoria</label>
+      <label for="inp-cat">Categoria</label>
       <select id="inp-cat">
         <option value="Alimentacao">🍔 Alimentacao</option><option value="Transporte">🚗 Transporte</option><option value="Moradia">🏠 Moradia</option><option value="Saude">💊 Saude</option><option value="Lazer">🎮 Lazer</option><option value="Educacao">📚 Educacao</option><option value="Vestuario">👕 Vestuario</option><option value="Cartao">💳 Cartao</option><option value="Emprestimo">🏦 Emprestimo</option><option value="Outros">📦 Outros</option>
       </select>
     </div>
     <div class="form-group">
-      <label>Forma de pagamento</label>
+      <label for="inp-pay">Forma de pagamento</label>
       <select id="inp-pay">
         <option value="Dinheiro">💵 Dinheiro</option><option value="PIX">⚡ PIX</option><option value="Debito">💳 Debito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option><option value="Boleto">📄 Boleto</option><option value="Outro">📦 Outro</option>
       </select>
@@ -468,7 +468,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
     <div class="form-group"><label>Descrição</label><input type="text" id="inc-desc" placeholder="Ex: Freela, Bônus, 13º..." maxlength="60"></div>
     <div class="form-group"><label>Valor (R$)</label><input type="number" id="inc-value" placeholder="0,00" min="0.01" step="0.01"></div>
     <div class="form-group">
-      <label>Origem</label>
+      <label for="inc-origem">Origem</label>
       <select id="inc-origem">
         <option value="Freela">💻 Freela</option>
         <option value="Bonus">🎁 Bônus</option>
@@ -493,8 +493,8 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
     <input type="hidden" id="edit-id">
     <div class="form-group"><label>Descricao</label><input type="text" id="edit-desc" maxlength="60"></div>
     <div class="form-group"><label>Valor (R$)</label><input type="number" id="edit-value" min="0.01" step="0.01"></div>
-    <div class="form-group"><label>Categoria</label><select id="edit-cat"><option value="Alimentacao">🍔 Alimentacao</option><option value="Transporte">🚗 Transporte</option><option value="Moradia">🏠 Moradia</option><option value="Saude">💊 Saude</option><option value="Lazer">🎮 Lazer</option><option value="Educacao">📚 Educacao</option><option value="Vestuario">👕 Vestuario</option><option value="Cartao">💳 Cartao</option><option value="Emprestimo">🏦 Emprestimo</option><option value="Outros">📦 Outros</option></select></div>
-    <div class="form-group"><label>Forma de pagamento</label><select id="edit-pay"><option value="Dinheiro">💵 Dinheiro</option><option value="PIX">⚡ PIX</option><option value="Debito">💳 Debito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option><option value="Boleto">📄 Boleto</option><option value="Outro">📦 Outro</option></select></div>
+    <div class="form-group"><label for="edit-cat">Categoria</label><select id="edit-cat"><option value="Alimentacao">🍔 Alimentacao</option><option value="Transporte">🚗 Transporte</option><option value="Moradia">🏠 Moradia</option><option value="Saude">💊 Saude</option><option value="Lazer">🎮 Lazer</option><option value="Educacao">📚 Educacao</option><option value="Vestuario">👕 Vestuario</option><option value="Cartao">💳 Cartao</option><option value="Emprestimo">🏦 Emprestimo</option><option value="Outros">📦 Outros</option></select></div>
+    <div class="form-group"><label for="edit-pay">Forma de pagamento</label><select id="edit-pay"><option value="Dinheiro">💵 Dinheiro</option><option value="PIX">⚡ PIX</option><option value="Debito">💳 Debito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option><option value="Boleto">📄 Boleto</option><option value="Outro">📦 Outro</option></select></div>
     <div class="form-group"><label>Data</label><input type="date" id="edit-date"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeEditModal()">Cancelar</button>
@@ -510,7 +510,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
     <input type="hidden" id="efix-id">
     <div class="form-group"><label>Nome da conta</label><input type="text" id="efix-name" maxlength="50"></div>
     <div class="form-group"><label>Valor (R$)</label><input type="number" id="efix-value" min="0.01" step="0.01"></div>
-    <div class="form-group"><label>Forma de pagamento</label><select id="efix-pay"><option value="Dinheiro">💵 Dinheiro</option><option value="PIX">⚡ PIX</option><option value="Debito">💳 Debito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option><option value="Boleto">📄 Boleto</option><option value="Outro">📦 Outro</option></select></div>
+    <div class="form-group"><label for="efix-pay">Forma de pagamento</label><select id="efix-pay"><option value="Dinheiro">💵 Dinheiro</option><option value="PIX">⚡ PIX</option><option value="Debito">💳 Debito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option><option value="Boleto">📄 Boleto</option><option value="Outro">📦 Outro</option></select></div>
     <div class="form-group"><label>Vencimento (dia do mes)</label><input type="number" id="efix-due" placeholder="Ex: 5" min="1" max="31"></div>
     <div class="form-group">
       <label class="toggle-label"><input type="checkbox" id="efix-parcelado" onchange="toggleEditFixParceladoForm()"><span>Parcelado no cartão?</span></label>
@@ -529,7 +529,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
   <div class="modal-box">
     <button class="modal-close" onclick="closePayCardModal()">×</button>
     <h3 id="pay-card-modal-title">Como pagou a fatura?</h3>
-    <div class="form-group"><label>Forma de pagamento</label><select id="pay-card-method"><option value="PIX">⚡ PIX</option><option value="Dinheiro">💵 Dinheiro</option><option value="Debito">💳 Débito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option></select></div>
+    <div class="form-group"><label for="pay-card-method">Forma de pagamento</label><select id="pay-card-method"><option value="PIX">⚡ PIX</option><option value="Dinheiro">💵 Dinheiro</option><option value="Debito">💳 Débito</option><option value="NuBank">💜 NuBank</option><option value="PicPay">💚 PicPay</option><option value="MeuCartao">🟠 MeuCartao</option></select></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closePayCardModal()">Cancelar</button>
       <button class="btn-primary" onclick="confirmPayCard()">Confirmar</button>
