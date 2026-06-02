@@ -1466,107 +1466,56 @@ async function sha256(str){
 
 function getLoginSb(){
   if(_sbLogin) return _sbLogin;
-  // Usa sempre as credenciais hardcoded — não depende do storage do dispositivo
-  var url = 'https://hfqykekexhkxceuhzlnz.supabase.co';
-  var key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmcXlrZWtleGhreGNldWh6bG56Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNTU1MTAsImV4cCI6MjA5NTkzMTUxMH0.IASId14eDJttvf6fcOAIf7qfyeUZvNvYSzqmXgQXQI4';
-  try{ _sbLogin = supabase.createClient(url, key); }catch(e){}
+  try{ _sbLogin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }catch(e){}
   return _sbLogin;
 }
 
-// Busca o hash da senha do Supabase (fonte da verdade)
-async function fetchRemoteHash(){
-  var client = getLoginSb();
-  if(!client) return null;
-  try{
-    var {data,error} = await client.from('app_config').select('value').eq('key','pwd_hash').single();
-    if(error || !data) return null;
-    return data.value;
-  }catch(e){ return null; }
-}
-
-// Salva hash no Supabase e também em cache local
-async function saveHash(hash){
-  localStorage.setItem(HASH_KEY, hash);
-  var client = getLoginSb();
-  if(!client) return;
-  await client.from('app_config').upsert({key:'pwd_hash', value:hash},{onConflict:'key'});
-}
-
-async function initLogin(){
-  // Mostra tela de login imediatamente com estado neutro
+function initLogin(){
   document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-btn').disabled = true;
-  document.getElementById('login-btn').textContent = '⟳ Verificando...';
-  document.getElementById('login-pwd-label').textContent = 'Senha';
-  document.getElementById('login-hint-setup').style.display = 'none';
-
-  // Tenta buscar hash remoto; fallback para localStorage
-  var remoteHash = await fetchRemoteHash();
-  var localHash = localStorage.getItem(HASH_KEY);
-  var storedHash = remoteHash || localHash;
-
-  // Sincroniza cache local com o remoto
-  if(remoteHash && remoteHash !== localHash) localStorage.setItem(HASH_KEY, remoteHash);
-
-  document.getElementById('login-btn').disabled = false;
-
-  _loginStep = 'enter';
   document.getElementById('login-pwd-label').textContent = 'Senha';
   document.getElementById('login-btn').textContent = 'Entrar';
   setTimeout(()=>document.getElementById('login-pwd').focus(), 100);
 }
 
 async function loginNext(){
-  var pwd = document.getElementById('login-pwd').value;
+  var pwd = document.getElementById('login-pwd').value.trim();
   var errEl = document.getElementById('login-err');
   errEl.classList.remove('show');
 
-  if(_loginStep === 'setup'){
-    if(pwd.length < 4){errEl.textContent='Senha deve ter pelo menos 4 caracteres.';errEl.classList.add('show');return;}
-    _tmpPwd = pwd;
-    _loginStep = 'confirm';
-    document.getElementById('login-hint-setup').style.display = 'none';
-    document.getElementById('login-hint-confirm').style.display = '';
-    document.getElementById('login-confirm-wrap').style.display = '';
-    document.getElementById('login-btn').textContent = 'Criar senha';
-    document.getElementById('login-pwd').value = '';
-    document.getElementById('login-pwd').focus();
-    return;
-  }
+  if(!pwd){ errEl.textContent='Digite sua senha.'; errEl.classList.add('show'); return; }
 
-  if(_loginStep === 'confirm'){
-    var pwd2 = document.getElementById('login-pwd2').value;
-    if(pwd !== _tmpPwd){errEl.textContent='As senhas não coincidem. Tente novamente.';errEl.classList.add('show');return;}
+  document.getElementById('login-btn').disabled = true;
+  document.getElementById('login-btn').textContent = '⟳ Verificando...';
+
+  try {
+    var client = getLoginSb();
     var hash = await sha256(pwd + LOGIN_USER);
-    document.getElementById('login-btn').disabled = true;
-    document.getElementById('login-btn').textContent = '⟳ Salvando...';
-    await saveHash(hash);
-    document.getElementById('login-btn').disabled = false;
-    unlockApp();
-    return;
-  }
+    var {data, error} = await client.from('app_config').select('value').eq('key','pwd_hash').single();
 
-  if(_loginStep === 'enter'){
-    if(!pwd){errEl.textContent='Digite sua senha.';errEl.classList.add('show');return;}
-    var hash = await sha256(pwd.trim() + LOGIN_USER);
-    // Verifica primeiro no cache local (rápido), depois no remoto se diferir
-    var localHash = localStorage.getItem(HASH_KEY);
-    if(hash === localHash){ unlockApp(); return; }
-    // Cache desatualizado? Tenta remoto
-    document.getElementById('login-btn').disabled = true;
-    document.getElementById('login-btn').textContent = '⟳ Verificando...';
-    var remoteHash = await fetchRemoteHash();
-    document.getElementById('login-btn').disabled = false;
-    document.getElementById('login-btn').textContent = 'Entrar';
-    if(remoteHash) localStorage.setItem(HASH_KEY, remoteHash);
-    if(hash !== (remoteHash || localHash)){
-      errEl.textContent='Senha incorreta. Tente novamente.';
+    if(error || !data){
+      errEl.textContent = 'Erro ao conectar ao banco. Tente novamente.';
       errEl.classList.add('show');
-      document.getElementById('login-pwd').value='';
-      document.getElementById('login-pwd').focus();
+      document.getElementById('login-btn').disabled = false;
+      document.getElementById('login-btn').textContent = 'Entrar';
       return;
     }
+
+    if(hash !== data.value){
+      errEl.textContent = 'Senha incorreta. Tente novamente.';
+      errEl.classList.add('show');
+      document.getElementById('login-pwd').value = '';
+      document.getElementById('login-pwd').focus();
+      document.getElementById('login-btn').disabled = false;
+      document.getElementById('login-btn').textContent = 'Entrar';
+      return;
+    }
+
     unlockApp();
+  } catch(e) {
+    errEl.textContent = 'Erro: ' + e.message;
+    errEl.classList.add('show');
+    document.getElementById('login-btn').disabled = false;
+    document.getElementById('login-btn').textContent = 'Entrar';
   }
 }
 
