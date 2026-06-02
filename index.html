@@ -257,7 +257,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
 <header>
   <div class="brand">
     <h1>🪙 Meus <span>Gastos</span></h1>
-    <span class="tag">v4.0 · cloud</span>
+    <span class="tag">v6.0 · cloud</span>
   </div>
   <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
     <span class="db-status loading" id="db-status">⟳ conectando</span>
@@ -267,6 +267,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
       <button onclick="changeMonth(1)">&#8250;</button>
     </div>
     <button onclick="openConfigModal()" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;" title="Configurações">⚙️</button>
+    <button onclick="openFullHistoryModal()" style="background:var(--s2);border:1px solid var(--border);color:var(--muted);padding:0 .7rem;height:30px;border-radius:6px;cursor:pointer;font-size:.7rem;font-family:'Syne',sans-serif;font-weight:600;white-space:nowrap;" title="Histórico completo">📋 Histórico</button>
     <button class="btn-logout" onclick="logout()" title="Sair">🔒 Sair</button>
   </div>
 </header>
@@ -277,9 +278,9 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
     <div class="section-label"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/52.png" class="section-poke" alt="">Fluxo do mes</div>
     <div class="salary-row">
       <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png" class="salary-poke poke-float" alt="Meowth">
-      <div class="salary-info">
-        <div class="lbl">Salario total</div>
-        <div class="val" id="flow-salary">R$ 0,00</div>
+      <div class="salary-info" onclick="openIncomeHistoryModal()" style="cursor:pointer;" title="Ver histórico de entradas">
+        <div class="lbl">Saldo total <span style="font-size:.55rem;color:var(--accent);opacity:.7">▼ ver histórico</span></div>
+        <div class="val" id="flow-salary" style="text-decoration:underline dotted;text-underline-offset:3px;">R$ 0,00</div>
         <div class="sub" id="flow-salary-detail"></div>
       </div>
       <div class="flow-arrows">
@@ -389,6 +390,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
   <div class="right-tabs">
     <button class="right-tab active" onclick="switchRightTab('fixed',this)">Conta fixa</button>
     <button class="right-tab" onclick="switchRightTab('expense',this)">Avulso</button>
+    <button class="right-tab" onclick="switchRightTab('income',this)">+ Entrada</button>
   </div>
 
   <div id="rform-fixed" style="display:flex;flex-direction:column;gap:.8rem;">
@@ -434,7 +436,27 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
     </div>
     <button class="btn-primary" onclick="addExpense()">+ Adicionar lancamento</button>
   </div>
-</div>
+
+  <div id="rform-income" style="display:none;flex-direction:column;gap:.8rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--green);background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.25);border-radius:8px;padding:.5rem .7rem;">💰 Adicionar dinheiro que entrou além do salário</div>
+    <div class="form-group"><label>Descrição</label><input type="text" id="inc-desc" placeholder="Ex: Freela, Bônus, 13º..." maxlength="60"></div>
+    <div class="form-group"><label>Valor (R$)</label><input type="number" id="inc-value" placeholder="0,00" min="0.01" step="0.01"></div>
+    <div class="form-group">
+      <label>Origem</label>
+      <select id="inc-origem">
+        <option value="Freela">💻 Freela</option>
+        <option value="Bonus">🎁 Bônus</option>
+        <option value="13 Salario">🎄 13º Salário</option>
+        <option value="Reembolso">↩️ Reembolso</option>
+        <option value="Presente">🎀 Presente</option>
+        <option value="Venda">🛒 Venda</option>
+        <option value="Investimento">📈 Investimento</option>
+        <option value="Outro">📦 Outro</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Data</label><input type="date" id="inc-date"></div>
+    <button class="btn-primary" style="background:var(--green)" onclick="addIncomeEntry()">+ Registrar entrada</button>
+  </div>
 </div>
 
 <!-- Modais -->
@@ -489,7 +511,39 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
   </div>
 </div>
 
-<!-- Config Modal -->
+<!-- Income History Modal -->
+<div class="modal-overlay" id="income-history-modal" style="display:none;" onclick="closeIncomeHistoryModal(event)">
+  <div class="modal-box" style="max-width:500px;">
+    <button class="modal-close" onclick="closeIncomeHistoryModal()">×</button>
+    <h3>💰 Histórico de Entradas — <span id="inc-modal-month"></span></h3>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:-.3rem;">Salários + entradas avulsas do mês</div>
+    <div id="income-history-list" style="display:flex;flex-direction:column;gap:.5rem;max-height:60vh;overflow-y:auto;"></div>
+    <div style="border-top:1px solid var(--border);padding-top:.7rem;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--muted);">Total entrou</span>
+      <span id="inc-modal-total" style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--green);">R$ 0,00</span>
+    </div>
+  </div>
+</div>
+
+<!-- Full History Modal -->
+<div class="modal-overlay" id="full-history-modal" style="display:none;" onclick="closeFullHistoryModal(event)">
+  <div class="modal-box" style="max-width:560px;">
+    <button class="modal-close" onclick="closeFullHistoryModal()">×</button>
+    <h3>📋 Histórico Completo — <span id="fh-modal-month"></span></h3>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:-.3rem;">Tudo em ordem cronológica (entradas, gastos, fixas, cartões)</div>
+    <div style="display:flex;gap:.4rem;margin:.3rem 0;flex-wrap:wrap;">
+      <button class="tab-btn active" id="fh-filter-all" onclick="filterFullHistory('all',this)">Tudo</button>
+      <button class="tab-btn" id="fh-filter-in" onclick="filterFullHistory('in',this)">💰 Entradas</button>
+      <button class="tab-btn" id="fh-filter-out" onclick="filterFullHistory('out',this)">💸 Saídas</button>
+    </div>
+    <div id="full-history-list" style="display:flex;flex-direction:column;gap:.4rem;max-height:60vh;overflow-y:auto;"></div>
+    <div style="border-top:1px solid var(--border);padding-top:.7rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--green);">Total entrou: <b id="fh-total-in">R$ 0,00</b></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--red);">Total saiu: <b id="fh-total-out">R$ 0,00</b></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);">Saldo: <b id="fh-total-bal">R$ 0,00</b></span>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="config-modal" style="display:none;" onclick="closeConfigModal(event)">
   <div class="modal-box">
     <button class="modal-close" onclick="closeConfigModal()">×</button>
@@ -628,7 +682,7 @@ async function dbLoadCards(){
 }
 
 function invalidateCache(){
-  ['exp','fix','sal','cards'].forEach(t=>{delete _cache[cacheKey(curY,curM,t)];});
+  ['exp','fix','sal','cards','inc'].forEach(t=>{delete _cache[cacheKey(curY,curM,t)];});
 }
 
 function fmt(v){return'R$ '+v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
@@ -645,7 +699,122 @@ async function saveSalary(){
   render();
 }
 
-// ---- Cards ----
+// ---- Income Entries ----
+async function dbLoadIncome(){
+  if(!sb)return[];
+  var ck=cacheKey(curY,curM,'inc');
+  if(_cache[ck]!==undefined)return _cache[ck];
+  var{data,error}=await sb.from('income_entries').select('*').eq('year',curY).eq('month',curM);
+  if(error){console.error(error);return[];}
+  var mapped=(data||[]).map(r=>({id:r.id,desc:r.description,value:parseFloat(r.value),origem:r.origem||'Outro',date:r.date}));
+  _cache[ck]=mapped;
+  return mapped;
+}
+
+async function addIncomeEntry(){
+  var desc=document.getElementById('inc-desc').value.trim();
+  var value=parseFloat(document.getElementById('inc-value').value);
+  var origem=document.getElementById('inc-origem').value;
+  var date=document.getElementById('inc-date').value;
+  if(!desc){alert('Informe a descrição.');return;}
+  if(!value||value<=0){alert('Informe um valor válido.');return;}
+  if(!date){alert('Informe a data.');return;}
+  if(!sb)return;
+  delete _cache[cacheKey(curY,curM,'inc')];
+  await sb.from('income_entries').insert({id:Date.now().toString(),year:curY,month:curM,description:desc,value,origem,date});
+  document.getElementById('inc-desc').value='';
+  document.getElementById('inc-value').value='';
+  render();
+  alert('✅ Entrada registrada!');
+}
+
+async function removeIncomeEntry(id){
+  if(!confirm('Remover esta entrada?'))return;
+  delete _cache[cacheKey(curY,curM,'inc')];
+  await sb.from('income_entries').delete().eq('id',id);
+  openIncomeHistoryModal();
+}
+
+// ---- Income History Modal ----
+async function openIncomeHistoryModal(){
+  document.getElementById('inc-modal-month').textContent=MONTHS[curM]+' '+curY;
+  document.getElementById('income-history-modal').style.display='flex';
+  var[sal,income]=await Promise.all([dbLoadSal(),dbLoadIncome()]);
+  var items=[];
+  if(sal.s1>0)items.push({type:'salary',label:'Salário 1',value:sal.s1,date:'',icon:'💼'});
+  if(sal.s2>0)items.push({type:'salary',label:'Salário 2',value:sal.s2,date:'',icon:'💼'});
+  income.forEach(e=>items.push({type:'extra',label:e.desc,value:e.value,date:e.date,icon:ORIGEM_ICON[e.origem]||'💰',origem:e.origem,id:e.id}));
+  var total=items.reduce((s,i)=>s+i.value,0);
+  document.getElementById('inc-modal-total').textContent=fmt(total);
+  var el=document.getElementById('income-history-list');
+  if(!items.length){el.innerHTML='<div class="empty">Nenhuma entrada registrada neste mês.</div>';return;}
+  el.innerHTML=items.map(i=>'<div style="display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;background:var(--s2);border:1px solid var(--border);border-radius:12px;">'+
+    '<span style="font-size:1.1rem">'+i.icon+'</span>'+
+    '<div style="flex:1;min-width:0;">'+
+      '<div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+i.label+'</div>'+
+      '<div style="font-size:.62rem;color:var(--muted);font-family:\'JetBrains Mono\',monospace;">'+(i.type==='salary'?'Salário':(i.origem||'Extra'))+(i.date?' · '+new Date(i.date+'T12:00:00').toLocaleDateString('pt-BR'):'')+' </div>'+
+    '</div>'+
+    '<span style="font-family:\'JetBrains Mono\',monospace;font-size:.85rem;font-weight:700;color:var(--green);">+'+fmt(i.value)+'</span>'+
+    (i.type==='extra'?'<button class="btn-rm" onclick="removeIncomeEntry(\''+i.id+'\')" title="Remover">×</button>':'')+
+  '</div>').join('');
+}
+
+function closeIncomeHistoryModal(evt){if(evt&&evt.target!==document.getElementById('income-history-modal'))return;document.getElementById('income-history-modal').style.display='none';}
+
+// ---- Full History Modal ----
+var _fhData=[];
+async function openFullHistoryModal(){
+  document.getElementById('fh-modal-month').textContent=MONTHS[curM]+' '+curY;
+  document.getElementById('full-history-modal').style.display='flex';
+  var[sal,income,expenses,fixed]=await Promise.all([dbLoadSal(),dbLoadIncome(),dbLoadExp(),dbLoadFix()]);
+  _fhData=[];
+  // Entradas
+  if(sal.s1>0)_fhData.push({kind:'in',icon:'💼',label:'Salário 1',sub:'Salário',value:sal.s1,date:'',sign:1});
+  if(sal.s2>0)_fhData.push({kind:'in',icon:'💼',label:'Salário 2',sub:'Salário',value:sal.s2,date:'',sign:1});
+  income.forEach(e=>_fhData.push({kind:'in',icon:ORIGEM_ICON[e.origem]||'💰',label:e.desc,sub:e.origem||'Entrada extra',value:e.value,date:e.date,sign:1}));
+  // Saídas: gastos avulsos
+  expenses.forEach(e=>_fhData.push({kind:'out',icon:'💸',label:e.desc,sub:e.cat+' · '+e.pay,value:e.value,date:e.date,sign:-1,paid:e.paid}));
+  // Saídas: contas fixas
+  fixed.forEach(e=>_fhData.push({kind:'out',icon:'📌',label:e.name,sub:'Fixa · '+e.pay+(e.due?' · dia '+e.due:''),value:e.value,date:'',sign:-1,paid:e.paid}));
+  // Sort: date desc, empty dates last
+  _fhData.sort((a,b)=>{
+    if(!a.date&&!b.date)return 0;
+    if(!a.date)return 1;
+    if(!b.date)return-1;
+    return new Date(b.date)-new Date(a.date);
+  });
+  filterFullHistory('all',document.getElementById('fh-filter-all'));
+}
+
+function filterFullHistory(type,btn){
+  document.querySelectorAll('#full-history-modal .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  var list=type==='in'?_fhData.filter(d=>d.kind==='in'):type==='out'?_fhData.filter(d=>d.kind==='out'):_fhData;
+  var totalIn=_fhData.filter(d=>d.kind==='in').reduce((s,d)=>s+d.value,0);
+  var totalOut=_fhData.filter(d=>d.kind==='out').reduce((s,d)=>s+d.value,0);
+  document.getElementById('fh-total-in').textContent=fmt(totalIn);
+  document.getElementById('fh-total-out').textContent=fmt(totalOut);
+  var bal=totalIn-totalOut;
+  var balEl=document.getElementById('fh-total-bal');
+  balEl.textContent=fmt(Math.abs(bal));
+  balEl.style.color=bal<0?'var(--red)':bal===0?'var(--muted)':'var(--green)';
+  var el=document.getElementById('full-history-list');
+  if(!list.length){el.innerHTML='<div class="empty">Nenhum registro encontrado.</div>';return;}
+  el.innerHTML=list.map(d=>'<div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .7rem;background:var(--s2);border:1px solid var(--border);border-radius:12px;border-left:3px solid '+(d.kind==='in'?'var(--green)':'var(--red)')+';">'+
+    '<span style="font-size:1rem">'+d.icon+'</span>'+
+    '<div style="flex:1;min-width:0;">'+
+      '<div style="font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(d.paid!==undefined?'<span style="font-size:.58rem;background:'+(d.paid?'rgba(62,207,142,.15)':'rgba(244,91,105,.1)')+';color:'+(d.paid?'var(--green)':'var(--red)')+';border-radius:4px;padding:.05rem .3rem;margin-right:.3rem;">'+(d.paid?'pago':'pendente')+'</span>':'')+d.label+'</div>'+
+      '<div style="font-size:.6rem;color:var(--muted);font-family:\'JetBrains Mono\',monospace;">'+d.sub+(d.date?' · '+new Date(d.date+'T12:00:00').toLocaleDateString('pt-BR'):'')+' </div>'+
+    '</div>'+
+    '<span style="font-family:\'JetBrains Mono\',monospace;font-size:.82rem;font-weight:700;color:'+(d.kind==='in'?'var(--green)':'var(--red)')+';">'+(d.kind==='in'?'+':'-')+fmt(d.value)+'</span>'+
+  '</div>').join('');
+}
+
+function closeFullHistoryModal(evt){if(evt&&evt.target!==document.getElementById('full-history-modal'))return;document.getElementById('full-history-modal').style.display='none';}
+
+const ORIGEM_ICON={'Freela':'💻','Bonus':'🎁','13 Salario':'🎄','Reembolso':'↩️','Presente':'🎀','Venda':'🛒','Investimento':'📈','Outro':'💰'};
+
+
 async function updateCard(id){
   if(!sb)return;
   var l=parseFloat(document.getElementById('linp-'+id).value)||0;
@@ -907,13 +1076,17 @@ function switchRightTab(name,btn){
   btn.classList.add('active');
   document.getElementById('rform-fixed').style.display=name==='fixed'?'flex':'none';
   document.getElementById('rform-expense').style.display=name==='expense'?'flex':'none';
+  document.getElementById('rform-income').style.display=name==='income'?'flex':'none';
+  if(name==='income'){document.getElementById('inc-date').value=today.toISOString().split('T')[0];}
   // Sincroniza aba principal
-  var mainBtn=document.querySelector('.main-tab-btn['+(name==='fixed'?'onclick*="fixas"':'onclick*="avulsos"')+']');
-  if(mainBtn){
-    document.querySelectorAll('.main-tab-btn').forEach(b=>b.classList.remove('active'));
-    mainBtn.classList.add('active');
-    document.querySelectorAll('.main-tab-section').forEach(s=>s.classList.remove('active'));
-    document.getElementById('main-tab-'+(name==='fixed'?'fixas':'avulsos')).classList.add('active');
+  if(name==='fixed'||name==='expense'){
+    var mainBtn=document.querySelector('.main-tab-btn['+(name==='fixed'?'onclick*="fixas"':'onclick*="avulsos"')+']');
+    if(mainBtn){
+      document.querySelectorAll('.main-tab-btn').forEach(b=>b.classList.remove('active'));
+      mainBtn.classList.add('active');
+      document.querySelectorAll('.main-tab-section').forEach(s=>s.classList.remove('active'));
+      document.getElementById('main-tab-'+(name==='fixed'?'fixas':'avulsos')).classList.add('active');
+    }
   }
 }
 
@@ -995,10 +1168,32 @@ async function render(){
 
   var[sal,cards,expenses,fixed]=await Promise.all([dbLoadSal(),dbLoadCards(),dbLoadExp(),dbLoadFix()]);
 
+  // Auto-populate fixed expenses from previous month if current month has none
+  if(!isFirstMonth()&&fixed.length===0){
+    var prevM=curM-1,prevY=curY;
+    if(prevM<0){prevM=11;prevY--;}
+    var{data:prevFix}=await sb.from('fixed_expenses').select('*').eq('year',prevY).eq('month',prevM);
+    if(prevFix&&prevFix.length>0){
+      var nonParc=prevFix.filter(r=>!r.parcelado);
+      var inserts=nonParc.map(r=>({id:r.id+'_r_'+curY+'_'+curM,year:curY,month:curM,name:r.name,value:parseFloat(r.value),pay:r.pay,due:r.due||0,paid:false,parcelado:false,nparcelas:0}));
+      if(inserts.length>0){
+        await sb.from('fixed_expenses').upsert(inserts,{onConflict:'id'});
+        delete _cache[cacheKey(curY,curM,'fix')];
+        fixed=await dbLoadFix();
+      }
+    }
+  }
+
   document.getElementById('inp-salary').value=sal.s1||'';
   document.getElementById('inp-salary2').value=sal.s2||'';
-  document.getElementById('flow-salary').textContent=fmt(sal.total);
+
+  var income=await dbLoadIncome();
+  var totalIncome=income.reduce((s,e)=>s+e.value,0);
+  var totalEntradas=sal.total+totalIncome;
+
+  document.getElementById('flow-salary').textContent=fmt(totalEntradas);
   var parts=[];if(sal.s1)parts.push('S1: '+fmt(sal.s1));if(sal.s2)parts.push('S2: '+fmt(sal.s2));
+  if(totalIncome>0)parts.push('Extra: '+fmt(totalIncome));
   document.getElementById('flow-salary-detail').textContent=parts.join(' + ');
 
   var totalCartoes=0,totalCartoesPageos=0;
@@ -1054,13 +1249,13 @@ async function render(){
   // Saldo: só desconta o que JÁ FOI PAGO (saiu do bolso de fato)
   var totalFixedPago=fixed.filter(e=>CARD_PAYS.indexOf(e.pay)<0&&e.paid).reduce((s,e)=>s+e.value,0);
   var totalExpPago=expenses.filter(e=>CARD_PAYS.indexOf(e.pay)<0&&e.paid).reduce((s,e)=>s+e.value,0);
-  var saldo=sal.total-totalCartoesPageos-totalFixedPago-totalExpPago;
+  var saldo=totalEntradas-totalCartoesPageos-totalFixedPago-totalExpPago;
   document.getElementById('flow-cartoes-val').textContent=fmt(totalCartoes);
   document.getElementById('flow-fixas-val').textContent=fmt(totalFixed);
   document.getElementById('flow-gastos-val').textContent=fmt(totalExp);
   document.getElementById('flow-saldo-val').textContent=fmt(saldo);
   var sb2=document.getElementById('flow-saldo-box');
-  sb2.className='flow-box '+(saldo<0?'danger':saldo<sal.total*0.1?'warn':'ok');
+  sb2.className='flow-box '+(saldo<0?'danger':saldo<totalEntradas*0.1?'warn':'ok');
 
   var active=document.querySelector('.tab-btn.active').textContent.trim();
   if(active==='Lista')renderList(expenses);
@@ -1223,6 +1418,17 @@ CREATE TABLE IF NOT EXISTS cards (
   fatura_snapshot NUMERIC(10,2) DEFAULT 0,
   UNIQUE(year, month, card_id)
 );
+CREATE TABLE IF NOT EXISTS income_entries (
+  id TEXT PRIMARY KEY,
+  year INT NOT NULL,
+  month INT NOT NULL,
+  description TEXT NOT NULL,
+  value NUMERIC(10,2) NOT NULL,
+  origem TEXT DEFAULT 'Outro',
+  date TEXT NOT NULL
+);
+ALTER TABLE income_entries ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public access" ON income_entries FOR ALL USING (true) WITH CHECK (true);
 CREATE TABLE IF NOT EXISTS app_config (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
@@ -1302,16 +1508,9 @@ async function initLogin(){
 
   document.getElementById('login-btn').disabled = false;
 
-  if(!storedHash){
-    _loginStep = 'setup';
-    document.getElementById('login-hint-setup').style.display = '';
-    document.getElementById('login-pwd-label').textContent = 'Criar senha';
-    document.getElementById('login-btn').textContent = 'Continuar';
-  } else {
-    _loginStep = 'enter';
-    document.getElementById('login-pwd-label').textContent = 'Senha';
-    document.getElementById('login-btn').textContent = 'Entrar';
-  }
+  _loginStep = 'enter';
+  document.getElementById('login-pwd-label').textContent = 'Senha';
+  document.getElementById('login-btn').textContent = 'Entrar';
   setTimeout(()=>document.getElementById('login-pwd').focus(), 100);
 }
 
@@ -1386,6 +1585,7 @@ function logout(){
 }
 // ============================================================
 document.getElementById('inp-date').value=today.toISOString().split('T')[0];
+document.getElementById('inc-date').value=today.toISOString().split('T')[0];
 initLogin();
 </script>
 </div>
