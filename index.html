@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gastos RR</title>
+<title>Controle de Gastos</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='cg' cx='38%25' cy='32%25' r='60%25'%3E%3Cstop offset='0%25' stop-color='%23ffe566'/%3E%3Cstop offset='40%25' stop-color='%23d4a017'/%3E%3Cstop offset='100%25' stop-color='%237a4e00'/%3E%3C/radialGradient%3E%3CradialGradient id='sg' cx='38%25' cy='32%25' r='55%25'%3E%3Cstop offset='0%25' stop-color='%23fff2a0' stop-opacity='0.7'/%3E%3Cstop offset='100%25' stop-color='%23d4a017' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23cg)'/%3E%3Ccircle cx='32' cy='32' r='30' fill='url(%23sg)'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23b8860b' stroke-width='1.5' stroke-opacity='0.6'/%3E%3Ctext x='32' y='41' font-family='Georgia,serif' font-size='26' font-weight='bold' fill='%237a4e00' fill-opacity='0.85' text-anchor='middle'%3E%24%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -245,7 +245,7 @@ header{padding:1.5rem 2.5rem;border-bottom:1.5px solid var(--border);background:
   <div class="login-box">
     <div class="login-brand">
       <div class="login-avatar" id="login-avatar-img"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png" style="width:48px;height:48px;object-fit:contain;" alt="Meowth"></div>
-      <h1>Meus <br><span>Gastos</span></h1>
+      <h1>Meus <span>Gastos</span></h1>
       <p>controle financeiro pessoal</p>
     </div>
     <div class="login-user">👤 ricsonronny</div>
@@ -627,21 +627,27 @@ function isConfigured(){
 
 function initSupabase(){
   if(!isConfigured()){
-    setDbStatus('err','⚠ não configurado');
     document.getElementById('global-loading').style.display='none';
     openConfigModal();
     return;
   }
   try{
     sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-    setDbStatus('loading','⟳ conectando');
-    // Test connection
+    // Timeout de 5s para não ficar preso carregando
+    var timeout=setTimeout(()=>{
+      document.getElementById('global-loading').style.display='none';
+      render();
+    },5000);
     sb.from('expenses').select('id').limit(1).then(({error})=>{
-      if(error){setDbStatus('err','✕ erro: '+error.message);document.getElementById('global-loading').style.display='none';}
-      else{setDbStatus('ok','✓ conectado');document.getElementById('global-loading').style.display='none';render();}
+      clearTimeout(timeout);
+      document.getElementById('global-loading').style.display='none';
+      render();
+    }).catch(()=>{
+      clearTimeout(timeout);
+      document.getElementById('global-loading').style.display='none';
+      render();
     });
   }catch(e){
-    setDbStatus('err','✕ '+e.message);
     document.getElementById('global-loading').style.display='none';
   }
 }
