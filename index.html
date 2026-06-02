@@ -1493,7 +1493,7 @@ async function loginNext(){
     var {data, error} = await client.from('app_config').select('value').eq('key','pwd_hash').limit(1).maybeSingle();
 
     if(error || !data){
-      errEl.textContent = 'Erro ao conectar ao banco. Tente novamente.';
+      errEl.textContent = 'err: ' + JSON.stringify(error) + ' | data: ' + JSON.stringify(data);
       errEl.classList.add('show');
       document.getElementById('login-btn').disabled = false;
       document.getElementById('login-btn').textContent = 'Entrar';
